@@ -2,11 +2,14 @@
   "name": "localfastshares",
   "version": "1.0.0",
   "description": "LocalFastShares (LFS) - High-speed local peer-to-peer file transfer over LAN with zero-disk streaming",
-  "main": "server/index.js",
+  "main": "core/server.js",
   "type": "module",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node server/index.js",
+    "start": "node core/server.js",
+    "dev": "node core/server.js",
+    "desktop": "electron apps/desktop/main.js",
+    "desktop:build": "electron-builder --project apps/desktop",
+    "mobile:sync": "cap sync --config apps/mobile/capacitor.config.json",
     "test": "playwright test",
     "test:e2e": "playwright test"
   },
@@ -18,7 +21,10 @@
     "express",
     "websocket",
     "streaming",
-    "offline"
+    "offline",
+    "pwa",
+    "electron",
+    "capacitor"
   ],
   "author": "",
   "license": "MIT",
@@ -29,6 +35,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1"
+    "@playwright/test": "^1.62.1",
+    "electron": "^43.4.0"
   }
 }

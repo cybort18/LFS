@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="LocalFastShares (LFS) - High-speed, 100% offline local peer-to-peer file transfer over LAN and Wi-Fi.">
+  <meta name="description" content="LocalFastShares (LFS) - High-speed, 100% offline local peer-to-peer file transfer over LAN and Wi-Fi with zero-disk streaming.">
+  <meta name="theme-color" content="#0f172a">
   <title>LFS - LocalFastShares | High-Speed Local File Transfer</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -26,6 +30,11 @@
       </div>
 
       <div class="header-status">
+        <button id="btn-install-pwa" class="btn-secondary" style="display: none; padding: 0.3rem 0.75rem; font-size: 0.8rem; gap: 0.4rem; border-color: var(--accent-blue);">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Install App
+        </button>
+
         <div id="my-device-container" style="display: none; align-items: center; gap: 0.4rem; background: var(--surface-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-full); padding: 0.25rem 0.65rem;">
           <span id="my-device-badge" style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">This Device</span>
           <button id="btn-edit-device-name" class="btn-icon" title="Rename this device" style="padding: 2px;">
@@ -175,7 +184,13 @@
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
         </div>
         <h3 id="modal-sender-title" style="font-size: 1.05rem; font-weight: 600; margin-bottom: 0.35rem;">Incoming File Transfer</h3>
-        <p id="modal-sender-desc" class="dropzone-sub" style="margin-bottom: 0.875rem;">Device wants to send 1 file. Accept?</p>
+        <p id="modal-sender-desc" class="dropzone-sub" style="margin-bottom: 0.5rem;">Device wants to send 1 file. Accept?</p>
+        
+        <!-- Offline quota badge -->
+        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-full); padding: 0.2rem 0.65rem; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.85rem;">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          100% Transfer Lokal • 0 KB Kuota Internet
+        </div>
         
         <div id="modal-file-list" class="staged-list" style="max-height: 120px; text-align: left; margin-bottom: 1rem;">
           <!-- List of incoming files -->

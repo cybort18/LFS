@@ -52,10 +52,12 @@ const elements = {
   btnRejectTransfer: document.getElementById('btn-reject-transfer'),
   btnAcceptTransfer: document.getElementById('btn-accept-transfer'),
 
+  btnInstallPwa: document.getElementById('btn-install-pwa'),
   toastContainer: document.getElementById('toast-container')
 };
 
 let wsClient = null;
+let deferredInstallPrompt = null;
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
@@ -66,7 +68,51 @@ document.addEventListener('DOMContentLoaded', () => {
   setupConsentModal();
   setupDeviceNameEditor();
   renderMyDeviceBadge();
+  setupServiceWorker();
+  setupPwaInstallPrompt();
 });
+
+// PWA Offline Service Worker Registration
+function setupServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => {
+          console.log('[LFS PWA] Service Worker registered with scope:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('[LFS PWA] Service Worker registration failed:', err);
+        });
+    });
+  }
+}
+
+// PWA Install Prompt Handler
+function setupPwaInstallPrompt() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (elements.btnInstallPwa) {
+      elements.btnInstallPwa.style.display = 'inline-flex';
+      elements.btnInstallPwa.addEventListener('click', async () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          const { outcome } = await deferredInstallPrompt.userChoice;
+          if (outcome === 'accepted') {
+            showToast('LFS installed to home screen!');
+          }
+          deferredInstallPrompt = null;
+          elements.btnInstallPwa.style.display = 'none';
+        }
+      });
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    showToast('LFS is now installed and ready offline!');
+    if (elements.btnInstallPwa) elements.btnInstallPwa.style.display = 'none';
+  });
+}
 
 function renderMyDeviceBadge() {
   if (elements.myDeviceBadge) {

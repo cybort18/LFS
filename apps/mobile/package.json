@@ -1,0 +1,10 @@
+{
+  "name": "lfs-mobile",
+  "version": "1.0.0",
+  "description": "LocalFastShares Mobile Native Application (Android / iOS)",
+  "scripts": {
+    "cap:sync": "cap sync",
+    "android:open": "cap open android",
+    "ios:open": "cap open ios"
+  }
+}
