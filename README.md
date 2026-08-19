@@ -21,7 +21,7 @@ Unlike traditional cloud-based sharing services, LFS requires **zero internet ac
 
 Users do **not** need to install Node.js or use terminal commands. You can download the portable standalone package directly:
 
-* **Download Latest Release:** [GitHub Releases](https://github.com/your-username/localfastshares/releases/latest)
+* **Download Latest Release:** [GitHub Releases](https://github.com/cybort18/LFS/releases/latest)
 * **Archive Name:** `LocalFastShares-v1.0.0-windows-x64.zip`
 * **How to Run:**
   1. Download and extract `LocalFastShares-v1.0.0-windows-x64.zip`.
