@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lfs-offline-v1';
+const CACHE_NAME = 'lfs-offline-v3';
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
@@ -8,33 +8,40 @@ const OFFLINE_ASSETS = [
   '/js/qrClient.js',
   '/js/transferEngine.js',
   '/manifest.json',
-  '/icons/icon.svg'
+  '/icons/icon.svg',
+  '/icons/icon_1.svg',
+  '/icons/icon_landscape.svg',
+  '/icons/icon_landscape_transparant.svg'
 ];
 
 // Install Event: Pre-cache all core static assets for offline use
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[LFS SW] Caching offline assets...');
+      console.log('[LFS SW] Caching fresh offline assets (v3)...');
       return cache.addAll(OFFLINE_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Activate Event: Clean up outdated caches
+// Activate Event: Clean up all outdated caches immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .map((name) => {
+            console.log('[LFS SW] Deleting obsolete cache:', name);
+            return caches.delete(name);
+          })
       );
     }).then(() => self.clients.claim())
   );
 });
 
-// Fetch Event: Stale-While-Revalidate for static assets, bypass API/WS/transfer endpoints
+// Fetch Event: Network-First for HTML/navigation, Stale-While-Revalidate for static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -44,40 +51,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-First for /api/info
-  if (url.pathname === '/api/info') {
+  // Network-First for HTML navigation and /api/info so updates show up immediately
+  if (request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/api/info') {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request))
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request).then((res) => res || caches.match('/index.html')))
     );
     return;
   }
 
-  // Cache-First for static assets (HTML, CSS, JS, SVG, Fonts)
+  // Cache-First with background revalidation for static assets (CSS, JS, SVG, Fonts)
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch fresh copy in background
-        fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-
-      return fetch(request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+      const fetchPromise = fetch(request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse.clone()));
         }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
         return networkResponse;
-      }).catch(() => {
-        // Fallback to offline index.html if navigating
-        if (request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
+      }).catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

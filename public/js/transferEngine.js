@@ -1,6 +1,6 @@
 /**
  * High-Speed HTTP Chunked Transfer Engine for LocalFastShares (LFS)
- * Uses standard XMLHttpRequest upload progress and native browser attachment download.
+ * Uses standard XMLHttpRequest upload progress with RAF-throttled 60 FPS telemetry.
  */
 export class TransferEngine {
   /**
@@ -19,13 +19,15 @@ export class TransferEngine {
       const startTime = Date.now();
       let lastTime = startTime;
       let lastBytes = 0;
+      let rafPending = false;
+      let latestStats = null;
 
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
           const now = Date.now();
           const timeDiffSec = (now - lastTime) / 1000;
 
-          if (timeDiffSec >= 0.15 || e.loaded === e.total) {
+          if (timeDiffSec >= 0.1 || e.loaded === e.total) {
             const bytesDiff = e.loaded - lastBytes;
             const currentSpeedMBps = (bytesDiff / (1024 * 1024)) / (timeDiffSec || 0.001);
             const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
@@ -34,13 +36,21 @@ export class TransferEngine {
             const avgSpeedMBps = (e.loaded / (1024 * 1024)) / ((now - startTime) / 1000 || 0.001);
             const etaSeconds = avgSpeedMBps > 0 ? Math.round((remainingBytes / (1024 * 1024)) / avgSpeedMBps) : 0;
 
-            if (onProgress) {
-              onProgress({
-                bytesTransferred: e.loaded,
-                totalBytes: e.total,
-                percent,
-                speedMBps: currentSpeedMBps.toFixed(1),
-                etaSeconds
+            latestStats = {
+              bytesTransferred: e.loaded,
+              totalBytes: e.total,
+              percent,
+              speedMBps: currentSpeedMBps.toFixed(1),
+              etaSeconds
+            };
+
+            if (!rafPending && onProgress) {
+              rafPending = true;
+              requestAnimationFrame(() => {
+                if (latestStats && onProgress) {
+                  onProgress(latestStats);
+                }
+                rafPending = false;
               });
             }
 

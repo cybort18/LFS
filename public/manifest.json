@@ -4,10 +4,16 @@
   "description": "High-speed, 100% offline local peer-to-peer file transfer over LAN & Wi-Fi",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#090d16",
-  "theme_color": "#0f172a",
+  "background_color": "#0e1117",
+  "theme_color": "#0e1117",
   "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "/icons/icon_1.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icons/icon.svg",
       "sizes": "192x192 512x512",

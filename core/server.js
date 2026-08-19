@@ -1,8 +1,9 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
+import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
-import open from 'open';
 
 import { getLocalIpAddresses } from './utils/network.js';
 import { generateQrDataUrl } from './utils/qr.js';
@@ -11,6 +12,16 @@ import { handlePushStream, handlePullStream } from './transfer/streamHandler.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+function openBrowser(url) {
+  if (process.platform === 'win32') {
+    exec(`start "" "${url}"`, { windowsHide: true, shell: 'cmd.exe' }, () => {});
+  } else if (process.platform === 'darwin') {
+    exec(`open "${url}"`, () => {});
+  } else {
+    exec(`xdg-open "${url}"`, () => {});
+  }
+}
 
 /**
  * Creates and starts the LFS Express + WebSocket Server.
@@ -22,10 +33,18 @@ const __dirname = path.dirname(__filename);
  * @returns {Promise<{ app: express.Express, server: http.Server, port: number, localUrl: string, localhostUrl: string, stop: () => Promise<void> }>}
  */
 export function createLfsServer(options = {}) {
+  let defaultStaticDir = path.join(__dirname, '../public');
+  if (process.pkg) {
+    const externalPublic = path.join(path.dirname(process.execPath), 'public');
+    if (fs.existsSync(externalPublic)) {
+      defaultStaticDir = externalPublic;
+    }
+  }
+
   const {
     port = parseInt(process.env.PORT || '3000', 10),
     autoOpen = process.env.NODE_ENV !== 'test',
-    staticDir = path.join(__dirname, '../public'),
+    staticDir = defaultStaticDir,
     onListening = null
   } = options;
 
@@ -35,6 +54,17 @@ export function createLfsServer(options = {}) {
     let currentPort = port;
 
     app.use(express.json());
+
+    // Disable caching for HTML and Service Worker so updates are immediate
+    app.use((req, res, next) => {
+      if (req.path === '/' || req.path === '/index.html' || req.path === '/sw.js' || req.path === '/manifest.json') {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+      next();
+    });
+
     app.use(express.static(staticDir));
 
     // Server network info API endpoint
@@ -81,6 +111,8 @@ export function createLfsServer(options = {}) {
       }
     });
 
+    let browserOpened = false;
+
     server.listen(currentPort, () => {
       const { primaryIp } = getLocalIpAddresses();
       const actualPort = server.address().port;
@@ -94,10 +126,9 @@ export function createLfsServer(options = {}) {
       console.log(`Mobile LAN URL: ${localUrl}`);
       console.log('==================================================\n');
 
-      if (autoOpen) {
-        open(localhostUrl, { wait: false }).catch(() => {
-          console.log(`Auto-browser launch info: Open ${localhostUrl} manually.`);
-        });
+      if (autoOpen && !browserOpened) {
+        browserOpened = true;
+        openBrowser(localhostUrl);
       }
 
       const serverHandle = {
@@ -120,8 +151,8 @@ export function createLfsServer(options = {}) {
   });
 }
 
-// Auto-start when executed directly: node core/server.js
-const isDirectExecution = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+// Auto-start only when executed directly: node core/server.js
+const isDirectExecution = process.argv[1] && path.basename(process.argv[1]) === 'server.js';
 if (isDirectExecution) {
   createLfsServer().catch(err => {
     console.error('[FATAL] Failed to start LFS Server:', err);

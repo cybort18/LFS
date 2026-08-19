@@ -120,6 +120,13 @@ body::before {
   gap: 0.75rem;
 }
 
+.brand-logo {
+  height: 44px;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
 .brand-icon {
   width: 34px;
   height: 34px;
@@ -643,12 +650,13 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999;
   padding: 1.25rem;
   opacity: 0;
   pointer-events: none;

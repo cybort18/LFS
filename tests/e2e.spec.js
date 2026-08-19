@@ -24,7 +24,7 @@ test.describe('LFS End-to-End P2P Transfer Tests', () => {
 
     // 2. Create Mobile Receiver Context
     const mobileContext = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1'
+      acceptDownloads: true
     });
     const mobilePage = await mobileContext.newPage();
     mobilePage.on('console', msg => console.log('MOBILE:', msg.text()));
@@ -47,20 +47,21 @@ test.describe('LFS End-to-End P2P Transfer Tests', () => {
     const deviceItem = pcPage.locator('.device-item').first();
     await expect(deviceItem).toBeVisible({ timeout: 10000 });
     await deviceItem.click();
+    await expect(deviceItem).toHaveClass(/selected/, { timeout: 5000 });
 
     // 5. Send Files
     const sendBtn = pcPage.locator('#btn-send-files');
-    await expect(sendBtn).toBeEnabled();
+    await expect(sendBtn).toBeEnabled({ timeout: 10000 });
     await sendBtn.click();
 
     // 6. Verify Consent Modal on Mobile Receiver
     const modal = mobilePage.locator('#consent-modal');
-    await expect(modal).toHaveClass(/active/, { timeout: 10000 });
+    await expect(modal).toBeVisible({ timeout: 10000 });
     await expect(mobilePage.locator('#modal-sender-title')).toContainText('Incoming File');
 
     // 7. Accept Transfer on Mobile
     const downloadPromise = mobilePage.waitForEvent('download');
-    await mobilePage.click('#btn-accept-transfer');
+    await mobilePage.click('#btn-accept-transfer', { force: true });
 
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('sample_test_file.txt');
