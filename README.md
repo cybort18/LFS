@@ -1,11 +1,19 @@
-# LocalFastShares (LFS)
+<p align="center">
+  <img src="public/icons/icon_landscape_transparant.svg" alt="LocalFastShares Logo" width="340" />
+</p>
 
-> **High-speed, 100% offline local peer-to-peer file transfer over LAN / Wi-Fi with zero-disk streaming, ultra-lightweight Desktop System Tray daemon (~25 MB RAM), and Mobile PWA/Capacitor.**
+<h1 align="center">LocalFastShares (LFS)</h1>
 
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Node.js](https://img.shields.io/badge/Node.js-18%2B%20%7C%2020%2B%20%7C%2022%2B-brightgreen.svg)
-![Status](https://img.shields.io/badge/Tests-Playwright%20Passed-success.svg)
-![PWA](https://img.shields.io/badge/PWA-100%25%20Offline%20Ready-brightgreen.svg)
+<p align="center">
+  <strong>High-speed, 100% offline local peer-to-peer file transfer over LAN / Wi-Fi with zero-disk streaming, ultra-lightweight Desktop System Tray daemon (~25 MB RAM), and Mobile PWA.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License" />
+  <img src="https://img.shields.io/badge/Node.js-18%2B%20%7C%2020%2B%20%7C%2022%2B-brightgreen.svg" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Tests-Playwright%20Passed-success.svg" alt="Status" />
+  <img src="https://img.shields.io/badge/PWA-100%25%20Offline%20Ready-brightgreen.svg" alt="PWA" />
+</p>
 
 ---
 
@@ -25,8 +33,9 @@ Users do **not** need to install Node.js or use terminal commands. You can downl
 * **Archive Name:** `LocalFastShares-v1.0.0-windows-x64.zip`
 * **How to Run:**
   1. Download and extract `LocalFastShares-v1.0.0-windows-x64.zip`.
-  2. Double-click **`LocalFastShares.exe`**.
-  3. The application will start in your Windows System Tray (bottom-right taskbar) and automatically launch your default web browser to the dashboard.
+  2. **To Run Instantly (Portable Mode):** Double-click **`LFS.exe`**.
+  3. **To Install Permanently (Desktop & Start Menu Shortcuts + Startup Auto-start):** Double-click **`install.bat`**.
+  4. The application will start in your Windows System Tray (bottom-right taskbar) and automatically launch your default web browser to the dashboard (`http://localhost:3000`).
 
 ---
 
@@ -35,6 +44,7 @@ Users do **not** need to install Node.js or use terminal commands. You can downl
 - **100% Offline and Private:** Operates entirely within your local subnet. No data ever leaves your network.
 - **Zero-Disk Streaming Engine:** Uses native Node.js HTTP `PassThrough` stream piping directly from the sender's upload socket to the receiver's download socket, eliminating server disk I/O bottlenecks and storage wear.
 - **Ultra-Lightweight Desktop System Tray (~25 MB RAM):** Runs directly in the Windows System Tray with instant startup, zero Chromium overhead, automatic default browser launching, and quick-access LAN/Localhost IP display.
+- **Start with Windows (Autostart Toggle):** Allows users to toggle automatic launch on Windows boot directly from the System Tray menu.
 - **60 FPS Hardware-Accelerated UI:** Optimized rendering with RAF telemetry throttling, clean CSS surface layering, and instant asset caching.
 - **Mobile PWA and 100% Offline Caching:** Mobile devices can install LFS to their Home Screen with 1 click; assets are cached offline via Service Worker.
 - **1-Click Mobile QR Connect:** Generates dynamic local IP QR codes for instant mobile camera connection.
@@ -54,8 +64,11 @@ LFS/
 ├── apps/
 │   ├── desktop/                 # [DESKTOP] Lightweight System Tray Daemon
 │   │   ├── tray.js              # Native Windows Tray daemon & browser launcher
-│   │   ├── build.js             # Standalone SEA .exe & ZIP build compiler
-│   │   ├── assets/              # Native .ico tray assets
+│   │   ├── autostart.js         # Windows Registry startup toggle manager
+│   │   ├── browser.js           # Silent native browser launcher
+│   │   ├── build.js             # Standalone GUI .exe & ZIP build compiler
+│   │   ├── assets/              # Native .ico multi-resolution tray assets
+│   │   ├── installer/           # 1-Click install.bat & uninstall.bat scripts
 │   │   └── package.json         # Desktop packaging & build scripts
 │   │
 │   └── mobile/                  # [MOBILE] Capacitor Native Wrapper
@@ -87,7 +100,9 @@ LFS/
 │   └── index.html               # Main responsive user interface
 │
 ├── dist/                        # [BUILD OUTPUT] Standalone Executable & Assets
-│   ├── LocalFastShares.exe      # Compiled Windows Standalone Executable
+│   ├── LFS.exe                  # Compiled Windows Standalone GUI Executable
+│   ├── install.bat              # 1-Click Desktop Installer
+│   ├── uninstall.bat            # Clean Uninstaller
 │   └── LocalFastShares-v1.0.0-windows-x64.zip
 │
 ├── tests/
@@ -109,8 +124,8 @@ LFS/
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/localfastshares.git
-cd localfastshares
+git clone https://github.com/cybort18/LFS.git
+cd LFS
 npm install
 ```
 
@@ -121,7 +136,7 @@ npm run desktop
 ```
 - Runs directly in the **Windows System Tray** with **~25 MB idle RAM**.
 - Automatically opens the LFS dashboard in your default browser.
-- Tray context menu displays **Localhost URL**, **Mobile LAN URL**, and **Quick Exit**.
+- Tray context menu displays **Localhost URL**, **Mobile LAN URL**, **Start with Windows toggle**, and **Exit**.
 
 ### Building the Standalone Executable (.exe)
 
@@ -129,7 +144,7 @@ npm run desktop
 npm run desktop:build
 ```
 - Bundles all backend modules with `esbuild`.
-- Generates a native Single Executable Application (`dist/LocalFastShares.exe`) via Node.js SEA.
+- Generates a native Windows GUI Single Executable (`dist/LFS.exe`) with the official multi-resolution icon embedded.
 - Packages a portable release archive at `dist/LocalFastShares-v1.0.0-windows-x64.zip`.
 
 ### Running the Core Server (Web Mode)
